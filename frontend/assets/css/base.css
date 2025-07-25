@@ -1,0 +1,56 @@
+select::-ms-expand {
+  display: none;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #d9d9d9;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+button,
+a,
+input,
+.noSelect {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+button,
+a,
+input,
+.noSelect:focus {
+  outline: none !important;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.tooltip {
+  margin-bottom: 4px;
+  font-size: 0.8rem;
+  color: #fff;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 8px;
+}
+
+video {
+  width: 100vw;
+}
+
+.dark > body {
+  background-color: #212332;
+}
