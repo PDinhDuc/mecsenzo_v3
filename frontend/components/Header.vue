@@ -28,11 +28,11 @@
             @click="handleToggleNotify"
           >
             <div
-              v-if="numberNewNotify > 0"
+              v-if="unreadCount > 0"
               class="absolute top-[-4px] right-[-4px] w-[16px] h-[16px] bg-red-500 rounded-full text-white text-[0.8rem] flex items-center justify-center"
             >
               {{
-                numberNewNotify
+                unreadCount
               }}
             </div>
             <font-awesome-icon icon="bell" class="text-[1.2rem]" />
@@ -42,14 +42,13 @@
             class="notify-container absolute w-[350px] max-h-[70vh] overflow-y-auto px-4 py-4 bg-white shadow-xl top-[110%] right-[calc(100%-40px)] rounded-[20px] after:content-[''] after:w-full after:h-[20px] after:bg-slate-500 after:absolute after:top-[-20px] after:left-0 after:bg-transparent z-[100] origin-top transition-all duration-150 ease-in-out animate-[leftIn_0.3s_ease-in-out] md:animate-[scaleDown_0.15s_ease-in-out] dark:bg-dark_bg_nav"
             @scroll="handleScroll"
           >
-            <div v-for="(notify, index) in notifies" :key="index">
+            <div v-for="(notify, index) in notifications" :key="index">
               <NotifyItem
-                :sender="notify.senderFullname"
-                :type="notify.type"
-                :timestamp="notify.timestamp"
+                :sender="notify.data.from_user_name"
+                :type="notify.data.type"
+                :timestamp="notify.created_at"
                 :link="{
-                  path: `${splitBackslashNotifyLink(notify.link)}`,
-                  name: `${splitBackslashNotifyLink(notify.link)}___${$i18n.locale}`,
+                  path: `#`,
                 }"
                 @closeNotify="handleCloseNotify"
               />
@@ -63,7 +62,7 @@
           </div>
           <div
             v-if="isShowChooseLang"
-            class="notify-container absolute w-[300px] max-h-[70vh] overflow-y-auto px-4 py-4 bg-white shadow-xl CCtop-[110%] right-[calc(100%-100px)] rounded-[20px] after:content-[''] after:w-full after:h-[20px] after:bg-slate-500 after:absolute after:top-[-20px] after:left-0 after:bg-transparent z-[100] origin-top transition-all duration-150 ease-in-out animate-[leftIn_0.3s_ease-in-out] md:animate-[scaleDown_0.15s_ease-in-out] dark:bg-dark_bg_nav"
+            class="notify-container absolute w-[300px] max-h-[70vh] overflow-y-auto px-4 py-4 bg-white shadow-xl top-[110%] right-[calc(100%-100px)] rounded-[20px] after:content-[''] after:w-full after:h-[20px] after:bg-slate-500 after:absolute after:top-[-20px] after:left-0 after:bg-transparent z-[100] origin-top transition-all duration-150 ease-in-out animate-[leftIn_0.3s_ease-in-out] md:animate-[scaleDown_0.15s_ease-in-out] dark:bg-dark_bg_nav"
           >
             <div
               v-for="locale in availableLocales"
@@ -71,7 +70,7 @@
               class="flex justify-between items-center py-3 px-1 cursor-pointer border-b-[1px] border-b-[#939496]"
             >
               <NuxtLink
-                :to="useSwitchLocalePath(locale.code)"
+                to="#"
                 class="flex-1 dark:text-dark_text_strong"
                 @click="handleToggleChooseLang(locale.code)"
               >
@@ -125,14 +124,14 @@
               <SubMenuItem
                 icon="plus"
                 :content="t('nav.addFriend')"
-                :to="{ path: '/add-friend'}"
+                :to="localePath('add-friend')"
                 type="nuxt-link"
                 @closeNotify="handleCloseNotifyAndMenu"
               />
               <SubMenuItem
                 icon="chart-line"
                 :content="t('nav.statistic')"
-                :to="localePath({ path: 'statistic', name: `statistic___${$i18n.locale}` })"
+                :to="localePath('/statistic')"
                 type="nuxt-link"
                 @closeNotify="handleCloseNotifyAndMenu"
               />
@@ -197,11 +196,12 @@ import ModalProfile from '~/components/ModalProfile.vue'
 import NotifyItem from '~/components/NotifyItem.vue'
 import LoaderUser from '~/components/LoaderUser.vue'
 import { useI18n } from 'vue-i18n'
-import { useLocalePath, useSwitchLocalePath } from '#i18n'
+// import { useLocalePath, useSwitchLocalePath } from '#i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useNotifications } from '~/composables/useNotifications'
 
 const { notifications, unreadCount, listen, markAllAsRead } = useNotifications()
+const { locale, setLocale, locales } = useI18n()
 
 // Nuxt app context
 const { $i18n  } = useNuxtApp()
@@ -214,7 +214,6 @@ const localePath = useLocalePath()
 const user = ref(null)
 const isShowModalProfile = ref(false)
 const isShowNotify = ref(false)
-const notifies = ref(null)
 const isShowChooseLang = ref(false)
 const percentUploadAvatar = ref(null)
 const isShowLoaderUser = ref(true)
@@ -222,19 +221,9 @@ const mainMenu = ref(null)
 const btnHamburger = ref(null)
 const currentLoadNotify = ref(1)
 
-const numberNewNotify = computed(() => {
-  let count = 0
-  if (notifies.value) {
-    notifies.value.forEach((notify) => {
-      if (notify.seen === false) {
-        count++
-      }
-    })
-  }
-  return count
+const availableLocales = computed(() => {
+  return locales.value
 })
-
-const availableLocales = computed(() => $i18n.locales)
 
 const splitBackslashNotifyLink = (link) => {
   return link.substr(1)
@@ -247,13 +236,8 @@ const setUser = async () => {
 }
 
 const handleLogout = () => {
-  setActiveUser(false)
-  localStorage.removeItem('user')
-  store.dispatch('account/clearAccount')
-  router.push({
-    path: '/login',
-    name: `login___${$i18n.locale}`,
-  })
+  useAuthStore().logout()
+  navigateTo('/login')
 }
 
 const handleToggleMenu = () => {
@@ -290,12 +274,8 @@ const handleUpdateUser = async (payload) => {
 const handleToggleNotify = async () => {
   handleCloseMenu()
   handleCloseChooseLang()
-  if (!isShowNotify.value) {
-    notifies.value = notifications
-  }
   isShowNotify.value = !isShowNotify.value
-  
-  currentLoadNotify.value = 1
+  console.log(notifications);
 }
 
 const handleCloseNotify = () => {
@@ -317,11 +297,20 @@ const handleScroll = (e) => {
   }
 }
 
-const handleToggleChooseLang = (code) => {
+const handleToggleChooseLang = async (code) => {
   handleCloseMenu()
   handleCloseNotify()
   isShowChooseLang.value = !isShowChooseLang.value
+
+  if ($i18n.locale !== code) {
+    await setLocale(code)
+
+    // Optional: Nếu bạn muốn chuyển URL sang đúng route theo locale
+    const path = localePath({ path: router.currentRoute.value.fullPath, locale: code })
+    router.push(path)
+  }
 }
+
 
 const handleCloseChooseLang = () => {
   isShowChooseLang.value = false
@@ -341,8 +330,6 @@ const setPercentUploadAvatar = (percent) => {
 // Lifecycle hooks
 onMounted(async () => {
   listen()
-  console.log(notifications);
-  
   await setUser()
 
   const currentTheme = localStorage.getItem('theme') || 'light'

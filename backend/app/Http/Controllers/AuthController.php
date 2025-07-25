@@ -73,7 +73,7 @@ class AuthController extends Controller
                     ->where('friendships.user_id', '=', $authId);
                 });
             })
-            ->select('users.id', 'users.name', 'users.email', 'users.avatar', 'friendships.status')
+            ->select('users.id', 'users.name', 'users.email', 'users.avatar', 'friendships.status', 'friendships.user_id')
             ->paginate(10);
 
         return response()->json($users);

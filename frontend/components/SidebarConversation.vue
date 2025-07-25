@@ -29,7 +29,7 @@
           v-for="conversation in conversationIndividual"
           :id="conversation.id"
           :key="conversation.id"
-          :to="`/conversation/${conversation.id}`"
+          :to="localePath(`/conversation/${conversation.id}`)"
           :class="`h-[54px] mb-3 flex items-center cursor-pointer hover:bg-slate-200 hover:bg-[rgba(255,255,255,0.1)]
                   ${getClassBgCurrentConversation(conversation.id)}`"
           @click="handleSeenConversation(conversation)"
@@ -103,7 +103,7 @@
         v-for="conversation in conversationSpace"
         :id="conversation.id"
         :key="conversation.id"
-        :to="`/conversation/${conversation.id}`"
+        :to="localePath(`/conversation/${conversation.id}`)"
         :class="`h-[54px] mb-3 flex items-center cursor-pointer hover:bg-slate-200 hover:bg-[rgba(255,255,255,0.1)]
         ${getClassBgCurrentConversation(conversation.id)}`"
         @click="handleSeenConversation(conversation)"

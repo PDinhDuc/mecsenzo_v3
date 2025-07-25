@@ -41,18 +41,18 @@ export default function useChat(conversationId) {
   }
 
   const loadMessages = async () => {
-  if (!hasMore.value) return
-  const url = `/api/conversations/${conversationId}/messages?page=${currentPage.value}`
-  const res = await $fetch(url, {
-    baseURL: useRuntimeConfig().public.apiBase,
-    headers: {
-      Authorization: `Bearer ${useAuthStore().token}`
-    }
-  })
-  if (res.data.length < 10) hasMore.value = false
-  messages.value = [...messages.value,...res.data]
-  currentPage.value++
-}
+    if (!hasMore.value) return
+    const url = `/api/conversations/${conversationId}/messages?page=${currentPage.value}`
+    const res = await $fetch(url, {
+      baseURL: useRuntimeConfig().public.apiBase,
+      headers: {
+        Authorization: `Bearer ${useAuthStore().token}`
+      }
+    })
+    if (res.data.length < 10) hasMore.value = false
+    messages.value = [...messages.value,...res.data]
+    currentPage.value++
+  }
 
   onMounted(async () => {
     await loadMessages()

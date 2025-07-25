@@ -46,8 +46,8 @@ export default {
     },
   },
   notify: {
-    acceptFriend: 'đã đồng ý lời mời kết bạn',
-    inviteFriend: 'đã gửi yêu cầu kết bạn',
+    accepted: 'đã đồng ý lời mời kết bạn',
+    request: 'đã gửi yêu cầu kết bạn',
   },
   time: {
     minute: 'phút',

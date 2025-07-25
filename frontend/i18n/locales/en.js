@@ -46,8 +46,8 @@ export default {
     },
   },
   notify: {
-    acceptFriend: 'accepted your invitation',
-    inviteFriend: 'sent you invitation to add friend',
+    accepted: 'accepted your invitation',
+    request: 'sent you invitation to add friend',
   },
   time: {
     minute: 'minutes',

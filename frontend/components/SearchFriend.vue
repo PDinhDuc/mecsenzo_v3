@@ -37,25 +37,25 @@
             {{ t('addFriendTab.searchTab.friend') }}
           </div>
           <Button
-            v-else-if="user.status === 'pending'"
+            v-else-if="user.status === 'pending' && user.user_id === user.id"
             color="#f74242"
-            :handle-click="() => handleCancelInvitation(user.email)"
-          >
-            {{ t('addFriendTab.searchTab.cancel') }}
-          </Button>
-          <!-- <Button
-            v-else-if="isPendingInvitationReceived(user)"
-            color="#01c851"
-            :handle-click="() => handleAcceptInvitation(user.email)"
+            :handle-click="() => handleAcceptInvitation(user.id, 'accept')"
           >
             {{ t('addFriendTab.searchTab.accept') }}
-          </Button> -->
+          </Button>
+          <Button
+            v-else-if="user.status == null"
+            color="#01c851"
+            :handle-click="() => handleSendInvitation(user.id, 'send')"
+          >
+            {{ t('addFriendTab.searchTab.invite') }}
+          </Button>
           <Button
             v-else
             color="#01c851"
-            :handle-click="() => handleSendInvitation(user.email)"
+            :handle-click="() => handleCancelInvitation(user.id, 'cancel')"
           >
-            {{ t('addFriendTab.searchTab.invite') }}
+            {{ t('addFriendTab.searchTab.cancel') }}
           </Button>
         </div>
       </div>
@@ -69,14 +69,14 @@ import { useI18n } from 'vue-i18n'
 import Button from './Button.vue'
 import Avatar from './Avatar.vue'
 import { useDebounceFn } from '@vueuse/core'
-import { useUserStore } from '@/stores/user'
+import { useFriendStore } from '@/stores/friend'
 
 const getCurrentEmail = useState('currentUserEmail')
 
 const { t } = useI18n()
 
 const searchKey = ref('')
-const usersSearch = computed(()=>useUserStore().searchUserResult)
+const usersSearch = computed(()=>useFriendStore().searchFriendResult)
 const pendingInvitationSent = ref([])
 const pendingInvitationReceived = ref([])
 const friendOfCurrentUser = ref([])
@@ -94,7 +94,7 @@ function isFriend(user) {
 }
 
 const handleSearch = useDebounceFn(async () => {
-  await useUserStore().searchUser(searchKey.value)
+  await useFriendStore().searchFriend(searchKey.value)
 }, 300)
 
 async function handleCancelInvitation(receiver) {
@@ -105,53 +105,14 @@ async function handleCancelInvitation(receiver) {
   )
 }
 
-async function handleAcceptInvitation(sender) {
-  const invitation = await getPendingInvitationBySenderReceiver(sender, getCurrentEmail.value)
-  await acceptInvitation(invitation)
-
-  const currentUser = await getUserByEmail(getCurrentEmail.value)
-  const senderUser = await getUserByEmail(sender)
-
-  await addNewFriend(currentUser, sender)
-  await addNewFriend(senderUser, currentUser.email)
-
-  friendOfCurrentUser.value.push(sender)
-
-  createNotify(
-  console.log('create notification')
-  )
-
-  await createConversation({
-    type: 'individual',
-    member: [getCurrentEmail.value, sender],
-    seen: [],
-    isTyping: [],
-    colorChat: '#0084ff',
-    messages: [],
-    thumb: null,
-    name: '',
-    accountHost: null,
-    lastMessage: null,
-  })
+async function handleAcceptInvitation(friend_id, action) {
+  await useFriendStore().handleRequestFriend(friend_id, action)
+  await useFriendStore().searchFriend(searchKey.value)
 }
 
-async function handleSendInvitation(receiver) {
-  const newInvitation = await createInvitation(getCurrentEmail.value, receiver)
-  const fullInvitation = await getInvitationById(newInvitation.id)
-  pendingInvitationSent.value.push(fullInvitation)
-
-  const currentUser = await getUserByEmail(getCurrentEmail.value)
-
-  await createNotify(
-    receiver,
-    currentUser.fullName,
-    'inviteFriend',
-    routers.ADD_FRIEND_PAGE
-  )
+async function handleSendInvitation(friend_id, action) {
+  await useFriendStore().handleRequestFriend(friend_id, action)
+  await useFriendStore().searchFriend(searchKey.value)
 }
-watch(searchKey, (newValue)=>{
-  handleSearch(newValue)
-  console.log(usersSearch.value);
-  
-})
+watch(searchKey,handleSearch)
 </script>

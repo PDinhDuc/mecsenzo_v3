@@ -18,7 +18,7 @@ class NotificationController extends Controller
         return response()->json([
             'status' => true,
             'notifications' => $notifications
-        ]);
+        ],200);
     }
 
     public function unread()

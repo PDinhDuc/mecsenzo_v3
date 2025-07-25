@@ -6,7 +6,7 @@
         {{ t(getQueryTextNotifyContent) }}
       </p>
       <p class="mt-1 text-[0.9rem] italic text-gray-400">
-        {{ getTimeNotify }}
+        {{ useTimeAgo(timestamp) }}
       </p>
     </div>
   </NuxtLink>
@@ -16,6 +16,7 @@
 import { computed } from 'vue'
 import { useNuxtApp } from '#app'
 import { useI18n } from 'vue-i18n'
+import useTimeAgo from '@/composables/useTimeAgo'
 
 // Nuxt app context for i18n
 const { t } = useI18n()
@@ -37,8 +38,8 @@ const props = defineProps({
     default: '',
   },
   timestamp: {
-    type: Object,
-    default: () => null,
+    type: String,
+    default: '',
   }
 })
 
@@ -48,12 +49,6 @@ const emit = defineEmits(['closeNotify'])
 // Computed properties
 const getQueryTextNotifyContent = computed(() => `notify.${props.type}`)
 
-const getTimeNotify = computed(() => {
-  const time = transformTimeStampToString(props.timestamp?.seconds)
-  return `${time.value} ${t('time.' + time.type)} ${t('time.ago')}`
-})
-
-// Methods
 const handleCloseNotify = () => {
   emit('closeNotify')
 }
