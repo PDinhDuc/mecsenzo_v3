@@ -83,7 +83,7 @@ const emit = defineEmits(['set-reply', 'show-image-detail'])
 const user = computed(()=> useAuthStore().user)
 
 const isMyMessage = (message) => {
-  return user.value && message.user_id === user.value.id
+  return user.value && message.sender_id === user.value.id
 }
 
 

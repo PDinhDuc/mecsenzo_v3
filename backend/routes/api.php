@@ -47,7 +47,8 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 //route conversation / messages
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/conversations', [ConversationController::class, 'getConversationOfUser']);
+    Route::get('/conversations-individual', [ConversationController::class, 'getConversationIndividual']);
+    Route::get('/conversations-space', [ConversationController::class, 'getConversationSpace']);
     Route::get('/conversations/with/{userId}', [ConversationController::class, 'getConversationWithUser']);
     Route::get('/conversations/{id}/messages', [ConversationController::class, 'loadMessages']);
     Route::post('conversations/{id}/send', [ConversationController::class, 'sendMessage']);

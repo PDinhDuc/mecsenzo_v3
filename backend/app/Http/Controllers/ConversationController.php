@@ -9,14 +9,43 @@ use App\Models\Messages;
 
 class ConversationController extends Controller
 {
-    public function getConversationOfUser(){
+    public function getConversationIndividual(){
         $user = Auth::user();
-        $conversations = $user->conversations()
+        $conversations = $user->conversations()->where('type','private')
             ->with(['users:id,name,avatar', 'messages' => function ($q) {
                 $q->latest(); // lấy tin nhắn cuối cùng
-            }])
-            ->get();
-        return response()->json($conversations);
+            }])->paginate(2);
+        $mapped = $conversations->map(function ($conversation) use ($user) {
+            $partner = $conversation->users->where('id', '!=', $user->id)->values();
+
+            return [
+                'id' => $conversation->id,
+                'type' => $conversation->type,
+                'last_message' => $conversation->messages->first(),
+                'partner' => $partner[0],
+            ];
+        });
+        return response()->json($mapped);
+    }
+
+    public function getConversationSpace(){
+        $user = Auth::user();
+        $conversations = $user->conversations()->where('type','group')
+            ->with(['users:id,name,avatar', 'messages' => function ($q) {
+                $q->latest();
+            }])->paginate(1);
+
+        $mapped = $conversations->map(function ($conversation) use ($user) {
+            $partner = $conversation->users->where('id', '!=', $user->id)->values();
+            return [
+                'id' => $conversation->id,
+                'type' => $conversation->type,
+                'last_message' => $conversation->messages->first(),
+                'partner' => $partner,
+                'name' => $conversation->name,
+            ];
+        });
+        return response()->json($mapped);
     }
 
     public function getConversationWithUser($userId)
@@ -49,7 +78,7 @@ class ConversationController extends Controller
     public function sendMessage(Request $request, $conversationId)
     {
         $message = Messages::create([
-            'user_id' => auth()->id(),
+            'sender_id' => Auth::id(),
             'conversation_id' => $conversationId,
             'content' => $request->content
         ]);

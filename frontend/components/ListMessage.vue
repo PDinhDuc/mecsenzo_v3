@@ -62,8 +62,6 @@ const containerMsg = ref(null)
 
 // Watch for listMessageData changes to scroll to bottom
 watch(() => props.listMessage, () => {
-  console.log(props.listMessage);
-  
   nextTick(() => {
     scrollTopBottomContainerChat()
   })
@@ -96,7 +94,6 @@ const handleShowImageDetail = (srcImage) => {
 }
 
 onMounted( ()=>{
-  console.log(props.listMessage);
   nextTick(() => {
     scrollTopBottomContainerChat()
   })

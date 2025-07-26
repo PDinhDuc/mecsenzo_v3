@@ -12,13 +12,13 @@ class Messages extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['conversation_id', 'user_id', 'content'];
+    protected $fillable = ['conversation_id', 'sender_id', 'content'];
 
     public function conversation(): BelongsTo {
         return $this->belongsTo(Conversation::class);
     }
 
     public function user(): BelongsTo {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'sender_id');
     }
 }

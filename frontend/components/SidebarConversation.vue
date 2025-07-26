@@ -36,9 +36,9 @@
         > 
           <div class="relative">
             <Avatar
-              :is-have-avatar="conversation.users[0].avatar"
-              :src-image="conversation.users[0].avatar ?? conversation.users[0].avatar"
-              :first-char="conversation.users[0].name.charAt(0)"
+              :is-have-avatar="conversation.partner.avatar"
+              :src-image="conversation.partner.avatar ?? conversation.partner.avatar"
+              :first-char="conversation.partner.name.charAt(0)"
             />
             <div
               :class="`absolute w-[12px] h-[12px] rounded-full bottom-0 right-0 
@@ -51,7 +51,7 @@
               md:max-w-[120px] lg:max-w-[180px] h-[1.4rem] dark:text-dark_text_strong
               ${getClassNameNotSeen(conversation)}`"
             >
-              {{ conversation.users[0].name }}
+              {{ conversation.partner.name }}
             </p>
             <p
               :class="`select-none truncate text-ellipsis text-[0.9rem] max-w-[180px] 
@@ -59,7 +59,7 @@
               ${getClassNewMsgNotSeen(conversation)}`"
             >
               <span >
-                {{ conversation.messages[0]?.content }}
+                {{ conversation.last_message?.content }}
               </span>
               <!-- <span v-else-if="getLastMessage(conversation).type === 'audio'">
                 {{ t('sidebarConversation.lastMsgAudio') }}
@@ -123,13 +123,13 @@
             {{ conversation.name }}
           </p>
           <p
-            v-if="getLastMessage(conversation)"
+            v-if="conversation.last_message"
             :class="`select-none truncate text-ellipsis text-[0.9rem] 
             max-w-[180px] md:max-w-[120px] lg:max-w-[180px] dark:text-dark_text_light
             h-[1.4rem] ${getClassNewMsgNotSeen(conversation)}`"
           >
-            <span v-if="getLastMessage(conversation).type === 'text'">
-              {{ getLastMessage(conversation).content }}
+            <span v-if="conversation.last_message.type === 'text'">
+              {{ conversation.last_message.content }}
             </span>
             <span v-else-if="getLastMessage(conversation).type === 'audio'">
               {{ t('sidebarConversation.lastMsgAudio') }}
@@ -229,14 +229,10 @@ const showModalAddSpace = () => {
 }
 
 const setConversationIndividualAndSpace = async () => {
-  await useChatStore().fetchConversations()
-  useChatStore().conversations.map((conversation)=>{
-    if(conversation.type === 'private'){
-      conversationIndividual.value = [...conversationIndividual.value, conversation]
-    }else{
-      conversationSpace.value = [...conversationSpace.value, conversation]
-    }
-  })
+  await useChatStore().fetchConversationsIndividual()
+  await useChatStore().fetchConversationsSpace()
+  conversationIndividual.value = useChatStore().conversationsIndividual
+  conversationSpace.value = useChatStore().conversationsSpace
   isShowLoaderIndividualConversation.value = false
   isShowLoaderGroupConversation.value = false
 }
@@ -255,11 +251,11 @@ const handleChangeSearchKey = (e) => {
 }
 
 const handleLoadMoreSpaces = ()=>{
-  console.log('handle load more space')
+  useChatStore().fetchConversations()
 }
 
 const handleLoadMoreIndividual = ()=>{
-  console.log('handle load more conversation individual');
+  useChatStore().fetchConversations()
 }
 
 onMounted(async () => {

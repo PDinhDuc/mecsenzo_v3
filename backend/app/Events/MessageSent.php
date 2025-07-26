@@ -38,7 +38,7 @@ class MessageSent implements ShouldBroadcast
         return [
             'message' => [
                 'id' => $this->message->id,
-                'user_id' => $this->message->user->id,
+                'sender_id' => $this->message->user->id,
                 'conversation_id' => $this->message->conversation_id,
                 'content' => $this->message->content,
                 'user' => [
@@ -47,7 +47,6 @@ class MessageSent implements ShouldBroadcast
                     'avatar' => $this->message->user->avatar,
                     'email' => $this->message->user->email,
                     'id' => $this->message->user->id,
-                    'name' => $this->message->user->name,
                 ],
                 'created_at' => $this->message->created_at->toDateTimeString(),
             ]

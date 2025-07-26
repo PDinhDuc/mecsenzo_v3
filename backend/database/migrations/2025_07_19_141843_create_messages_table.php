@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->foreignId('sender_id')->constrained('users')->onDelete('cascade');
 
             // Nội dung tin nhắn
-            $table->enum('message_type', ['text', 'image', 'file', 'video', 'system'])->default('text');
+            $table->enum('message_type', ['text', 'image', 'file', 'video', 'system', 'audio'])->default('text');
             $table->text('content')->nullable();
 
             // Trả lời tin nhắn
