@@ -13,31 +13,44 @@ use App\Notifications\FriendRequestNotification;
 
 class FriendRequestController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-
-    public function sendRequest(Request $request){
+    public function getFriendOfUser(Request $request){
+        $userId = Auth::id();
+        $friend = FriendShips::where('status', $request->status)
+            ->where( function ($q) use ($userId){
+                $q->where('user_id', $userId)
+                    ->orWhere('friend_id', $userId);
+            })->get()
+            ->map(function ($friendship) use ($userId) {
+                $friendId = $friendship->user_id == $userId ? $friendship->friend_id : $friendship->user_id;
+                $friend = User::find($friendId);
+                return [
+                    'user' => $friend,
+                    'friendships' => $friendship
+                ];
+            });
+        return response()->json($friend);
+    }
+    public function sendRequest($id){
         
         $user = Auth::user();
-        $toUser = User::findOrFail($request->friend_id);
-        event(new FriendRequestSent($user, $request->friend_id));
+        $toUser = User::findOrFail($id);
+        event(new FriendRequestSent($user, $id));
     
-        $request->validate([
-            'friend_id' => 'required|exists:users,id'
-        ]);
+        // $request->validate([
+        //     'friend_id' => 'required|exists:users,id'
+        // ]);
 
-        if($user->id === (int)$request->friend_id){
+        if($user->id === $id){
             return response().json([
                 'message' => 'Bạn không thể kết bạn với chính mình.'
             ],400);
         }
 
-        $existing = Friendships::where(function ($query) use ($user, $request){
+        $existing = Friendships::where(function ($query) use ($user, $id){
             $query->where('user_id', $user->id)
-                ->where('friend_id', $request->friend_id);    
-        })->orWhere(function ($query) use ($user, $request){
-            $query->where('user_id', $request->friend_id)
+                ->where('friend_id', $id);    
+        })->orWhere(function ($query) use ($user, $id){
+            $query->where('user_id', $id)
                 ->where('friend_id',$user->id);
         })->first();
 
@@ -51,7 +64,7 @@ class FriendRequestController extends Controller
 
         $friendship = Friendships::create([
             'user_id' => $user->id,
-            'friend_id' => $request->friend_id,
+            'friend_id' => $id,
             'status' => 'pending'
         ]);
 
@@ -63,19 +76,15 @@ class FriendRequestController extends Controller
 
     public function acceptRequest($id)
     {
-        $friendship = Friendships::where(function ($query) use ($id) {
-            $query->where('user_id', $id)
-              ->where('friend_id', Auth::id());
-        })
-        ->orWhere(function ($query) use ($id) {
-            $query->where('user_id', Auth::id())
-                ->where('friend_id', $id);
-        })->where('status', 'pending')->firstOrFail();
-
+        $friendship = Friendships::find($id);
+        if (!$friendship) {
+            return response()->json([
+                'message' => 'Không tìm thấy lời mời kết bạn'
+            ], 404);
+        }
         $friendship->update(['status' => 'accepted']);
-
         $userId = Auth::id();
-        $friendId = $id;
+        $friendId = $friendship->user_id;
 
         $existingConversation = Conversation::where('type', 'private')
             ->whereHas('users', function ($q) use ($userId){
@@ -102,8 +111,6 @@ class FriendRequestController extends Controller
                     'updated_at' => now(),
                 ],
             ]);
-        }else{
-            $conversation = $existingConversation;
         }
 
         $fromUser = User::findOrFail($friendship->user_id);
@@ -127,6 +134,19 @@ class FriendRequestController extends Controller
         $friendship->update(['status' => 'declined']);
 
         return response()->json(['message' => 'Đã từ chối lời mời kết bạn.']);
+    }
+
+    public function cancelRequest($id){
+        $friendship = Friendships::find($id);
+        if(!$friendship){
+            return response()->json([
+                "message"=> "Không tìm thấy người dùng này"
+            ]);
+        }
+        $friendship->delete();
+        return response()->json([
+            'message'=>'Hủy lời mời kết bạn thành công'
+        ],200);
     }
 
     public function receivedRequests()

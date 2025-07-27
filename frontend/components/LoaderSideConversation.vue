@@ -1,10 +1,11 @@
 <template>
-  <div
-    class="flex justify-center items-center bg-loader w-[64px] h-[64px] animate-spin rounded-full"
-  >
-    <div class="w-[60px] h-[60px] rounded-full bg-white dark:bg-dark_bg_light"></div>
+  <div class="flex justify-center items-center">
+    <div
+      class="w-16 h-16 border-4 border-t-transparent border-blue-500 dark:border-[#ff7200] dark:border-t-transparent rounded-full animate-spin"
+    ></div>
   </div>
 </template>
+
 
 <style scoped>
 @media screen and (max-width: 768px) {

@@ -39,21 +39,21 @@
           <Button
             v-else-if="user.status === 'pending' && user.user_id === user.id"
             color="#f74242"
-            :handle-click="() => handleAcceptInvitation(user.id, 'accept')"
+            :handle-click="() => handleActionRequestFriend(user.friendship_id, 'accept')"
           >
             {{ t('addFriendTab.searchTab.accept') }}
           </Button>
           <Button
             v-else-if="user.status == null"
             color="#01c851"
-            :handle-click="() => handleSendInvitation(user.id, 'send')"
+            :handle-click="() => handleActionRequestFriend(user.id, 'invitation')"
           >
             {{ t('addFriendTab.searchTab.invite') }}
           </Button>
           <Button
             v-else
             color="#01c851"
-            :handle-click="() => handleCancelInvitation(user.id, 'cancel')"
+            :handle-click="() => handleActionRequestFriend(user.friendship_id, 'cancel')"
           >
             {{ t('addFriendTab.searchTab.cancel') }}
           </Button>
@@ -71,47 +71,18 @@ import Avatar from './Avatar.vue'
 import { useDebounceFn } from '@vueuse/core'
 import { useFriendStore } from '@/stores/friend'
 
-const getCurrentEmail = useState('currentUserEmail')
-
 const { t } = useI18n()
 
 const searchKey = ref('')
 const usersSearch = computed(()=>useFriendStore().searchFriendResult)
-const pendingInvitationSent = ref([])
-const pendingInvitationReceived = ref([])
-const friendOfCurrentUser = ref([])
-
-function isPendingInvitationSent(user) {
-  return pendingInvitationSent.value.some((i) => i.receiverEmail === user.email)
-}
-
-function isPendingInvitationReceived(user) {
-  return pendingInvitationReceived.value.some((i) => i.senderEmail === user.email)
-}
-
-function isFriend(user) {
-  return friendOfCurrentUser.value.includes(user.email)
-}
 
 const handleSearch = useDebounceFn(async () => {
   await useFriendStore().searchFriend(searchKey.value)
+  console.log(usersSearch.value);
 }, 300)
 
-async function handleCancelInvitation(receiver) {
-  const invitation = await getPendingInvitationBySenderReceiver(getCurrentEmail.value, receiver)
-  await deleteInvitation(invitation.id)
-  pendingInvitationSent.value = pendingInvitationSent.value.filter(
-    (invite) => invite.id !== invitation.id
-  )
-}
-
-async function handleAcceptInvitation(friend_id, action) {
-  await useFriendStore().handleRequestFriend(friend_id, action)
-  await useFriendStore().searchFriend(searchKey.value)
-}
-
-async function handleSendInvitation(friend_id, action) {
-  await useFriendStore().handleRequestFriend(friend_id, action)
+async function handleActionRequestFriend(id, action) {
+  await useFriendStore().handleActionRequestFriend(id, action)
   await useFriendStore().searchFriend(searchKey.value)
 }
 watch(searchKey,handleSearch)

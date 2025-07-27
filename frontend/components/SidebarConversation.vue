@@ -148,7 +148,7 @@
       </div>
     </div>
     <ClientOnly>
-      <AsyncResultSearchConversation v-if="keySearch.value" />
+      <AsyncResultSearchConversation v-if="keySearch" />
     </ClientOnly>
   </div>
 </template>
@@ -260,7 +260,7 @@ const handleLoadMoreIndividual = ()=>{
 
 onMounted(async () => {
   await setConversationIndividualAndSpace()
-  
+
 })
 </script>
 

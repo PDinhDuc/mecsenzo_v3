@@ -31,10 +31,12 @@ Route::group(['prefix' => 'auth'],function (){
 Route::middleware('auth:sanctum')->get('/search-friends', [AuthController::class, 'searchUser']);
 //route friend
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/friend-request/invitation', [FriendRequestController::class, 'sendRequest']);
+    Route::post('/friend-request/{id}/invitation', [FriendRequestController::class, 'sendRequest']);
     Route::post('/friend-request/{id}/accept', [FriendRequestController::class, 'acceptRequest']);
     Route::post('/friend-request/{id}/decline', [FriendRequestController::class, 'declineRequest']);
+    Route::delete('/friend-request/{id}/cancel', [FriendRequestController::class, 'cancelRequest']);
     Route::get('/friend-request/received', [FriendRequestController::class, 'receivedRequests']);
+    Route::post('/friend', [FriendRequestController::class, 'getFriendOfUser']);
 });
 //route notification
 Route::middleware('auth:sanctum')->group(function () {

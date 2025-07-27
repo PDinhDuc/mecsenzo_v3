@@ -12,7 +12,7 @@
         <option value="pending">
           {{ t('addFriendTab.invitationTab.pending') }}
         </option>
-        <option value="approved">
+        <option value="accepted">
           {{ t('addFriendTab.invitationTab.approved') }}
         </option>
       </select>
@@ -34,17 +34,17 @@
         :key="invitation.id"
         class="relative flex w-full justify-between items-center border-[2px] p-3 h-[86px]"
       >
-        <div v-if="invitation.user" class="flex items-center">
+        <div v-if="invitation" class="flex items-center">
           <Avatar
             :is-have-avatar="!!invitation.user.avatar"
             :src-image="invitation.user.avatar"
-            :first-char="invitation.user.fullName.charAt(0)"
+            :first-char="invitation.user.name.charAt(0)"
           />
           <p class="select-none text-[1.2rem] font-medium ml-3 dark:text-white">
-            {{ invitation.user.fullName }}
+            {{ invitation.user.name }}
           </p>
         </div>
-        <div v-if="filter === 'approved'">
+        <div v-if="filter === 'accepted'">
           <ButtonIcon class="group" color="#333">
             <font-awesome-icon icon="ellipsis-vertical" class="dark:text-dark_text_light" />
             <div
@@ -74,7 +74,7 @@
         <div v-else-if="filter === 'sent'">
           <Button
             color="#f74242"
-            :handle-click="() => handleCancelInvitation(invitation)"
+            :handle-click="() => handleActionRequestFriend(invitation.friendships.id, 'cancel')"
           >
             {{ t('addFriendTab.invitationTab.cancel') }}
           </Button>
@@ -82,7 +82,7 @@
         <div v-else-if="filter === 'pending'">
           <Button
             color="#01c851"
-            :handle-click="() => handleAccept(invitation)"
+            :handle-click="() => handleActionRequestFriend(invitation.friendships.id, 'accept')"
           >
             {{ t('addFriendTab.invitationTab.accept') }}
           </Button>
@@ -116,15 +116,13 @@ const router = useRouter()
 
 // Reactive state
 const filter = ref('pending')
-const friends = ref([])
-const invitationsSent = ref([])
-const invitationsReceived = ref([])
+const friends = computed(()=>useFriendStore().friendUser)
+const invitationsReceived = computed(()=>useFriendStore().friendUserReceiver)
+const invitationsSent = computed(()=>useFriendStore().friendUserSent)
 const currentUser = ref(null)
 const profileFriend = ref(null)
 const isShowLoader = ref(true)
 
-// Computed properties
-const currentEmail = computed(() => useAccountStore().getAccount)
 
 const getInvitations = computed(() => {
   if (filter.value === 'pending') {
@@ -138,76 +136,19 @@ const getInvitations = computed(() => {
 
 // Lifecycle hook
 onMounted(async () => {
+  await useFriendStore().fetchFriendOfUser(filter.value)
+  console.log(invitationsSent.value);
   isShowLoader.value = false
-
-  const emailReceiverInvitation = invitationsSent.value.map(
-    (invitation) => invitation.receiverEmail
-  )
-  if (emailReceiverInvitation.length > 0) {
-    const receiverInvitation = await getUsersByEmails(emailReceiverInvitation)
-    invitationsSent.value = mapInvitationUser(
-      invitationsSent.value,
-      receiverInvitation
-    ).slice()
-  }
-
-  const emailSenderInvitation = invitationsReceived.value.map(
-    (invitation) => invitation.senderEmail
-  )
-  if (emailSenderInvitation.length > 0) {
-    const senderInvitation = await getUsersByEmails(emailSenderInvitation)
-    invitationsReceived.value = mapInvitationUser(
-      invitationsReceived.value,
-      senderInvitation
-    ).slice()
-  }
 })
 
 // Methods
-const handleAccept = async (invitation) => {
-  const invitationUser = invitation.user
-  delete invitation.user
-
-  await acceptInvitation(invitation)
-  await addNewFriend(currentUser.value, invitationUser.email)
-  await addNewFriend(invitationUser, currentUser.value.email)
-
-  invitationsReceived.value = invitationsReceived.value.filter(
-    (item) => item.id !== invitation.id
-  )
-
-  await createNotify(
-    invitationUser.email,
-    currentUser.value.fullName,
-    'acceptFriend',
-    routers.ADD_FRIEND_PAGE
-  )
-
-  await createConversation({
-    type: 'individual',
-    member: [currentEmail.value, invitationUser.email],
-    seen: [],
-    isTyping: [],
-    colorChat: '#0084ff',
-    thumb: null,
-    name: '',
-    accountHost: null,
-    lastMessage: null,
-  })
-}
-
-const handleCancelInvitation = async (invitation) => {
-  await deleteInvitation(invitation.id)
-  invitationsSent.value = invitationsSent.value.filter(
-    (item) => item.id !== invitation.id
-  )
+const handleActionRequestFriend = async (id, action) =>{
+  await useFriendStore().handleActionRequestFriend(id,action)
+  await useFriendStore().fetchFriendOfUser(filter.value)
 }
 
 const handleUnfriend = async (invitation) => {
-  await unfriend(currentUser.value, invitation.user.email)
-  await unfriend(invitation.user, currentUser.value.email)
-  await deleteInvitation(invitation.id)
-  friends.value = friends.value.filter((item) => item.id !== invitation.id)
+
 }
 
 const handleRedirectToConversation = async (partnerUser) => {
@@ -232,4 +173,8 @@ const handleShowInfoFriend = (user) => {
 const handleCloseModalProfile = () => {
   profileFriend.value = null
 }
+
+watch(filter, async (newValue)=>{
+  await useFriendStore().fetchFriendOfUser(newValue)
+})
 </script>

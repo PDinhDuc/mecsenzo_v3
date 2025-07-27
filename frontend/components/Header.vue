@@ -329,8 +329,9 @@ const setPercentUploadAvatar = (percent) => {
 
 // Lifecycle hooks
 onMounted(async () => {
-  listen()
   await setUser()
+  console.log(notifications);
+  
 
   const currentTheme = localStorage.getItem('theme') || 'light'
   if (currentTheme === 'dark') {

@@ -13,8 +13,8 @@ export const useNotifications = () => {
     if (!user || !user.id) return
 
     $echo.private(`App.Models.User.${user.id}`)
-      .notification((notification) => {
-        notifications.value.unshift(notification)
+      .notification(() => {
+        loadNotification()
         unreadCount.value++
       })
   }
@@ -31,12 +31,88 @@ export const useNotifications = () => {
         Authorization: `Bearer ${useAuthStore().token}`
       }
     })
+    console.log(res);
+    
+    res.notifications.map((noti)=>{
+      if(noti.read_at === null) unreadCount.value++
+    })
     if(res.notifications.length < 10) hasMore.value = false
     notifications.value = [...notifications.value, ...res.notifications]
   }
 
-  const markAllAsRead = () => {
-    unreadCount.value = 0
+  const getUnReadNotification = async ()=>{
+    const url = `/api/notifications/unread`
+    try{
+      const res = await $fetch(url,{
+        baseURL: useRuntimeConfig().public.apiBase,
+        headers: {
+          Authorization: `Bearer ${useAuthStore().token}`
+        }
+      })
+      console.log(res);
+    }catch(err){
+      console.log(err);
+    }
+  }
+
+  const markAsRead = async (id) =>{
+    const url = `/api/notifications/read/${id}`
+    try{
+      const res = await $fetch(url,{
+        baseURL: useRuntimeConfig().public.apiBase,
+        headers: {
+          Authorization: `Bearer ${useAuthStore().token}`
+        }
+      })
+      unreadCount.value--
+    }catch(err){
+      console.log(err);
+    }
+  }
+
+  const markAllAsRead = async () => {
+    const url = `/api/notifications/read-all`
+    try{
+      await $fetch(url,{
+        baseURL: useRuntimeConfig().public.apiBase,
+        headers: {
+          Authorization: `Bearer ${useAuthStore().token}`
+        }
+      })
+      unreadCount.value = 0
+    }catch(err){
+      console.log(err);
+    }
+  }
+
+  const deleteNotifi = async (id)=>{
+    const url = `/api/notifications/${id}`
+    try{
+      await $fetch(url,{
+        baseURL: useRuntimeConfig().public.apiBase,
+        headers: {
+          Authorization: `Bearer ${useAuthStore().token}`
+        },
+        method: 'DELETE'
+      })
+    }catch(err){
+      console.log(err);
+    }
+  }
+
+  const deleteAll = async ()=> {
+    const url = `/api/notifications`
+    try{
+      await $fetch(url,{
+        baseURL: useRuntimeConfig().public.apiBase,
+        headers: {
+          Authorization: `Bearer ${useAuthStore().token}`
+        },
+        method: 'DELETE'
+      })
+    }catch(err){
+      console.log(err);
+    }
   }
 
   onMounted( async () => {
@@ -50,8 +126,12 @@ export const useNotifications = () => {
 
   return {
     notifications,
+    getUnReadNotification,
     unreadCount,
     listen,
-    markAllAsRead
+    markAsRead,
+    markAllAsRead,
+    deleteNotifi,
+    deleteAll
   }
 }
