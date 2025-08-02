@@ -31,8 +31,6 @@ export const useNotifications = () => {
         Authorization: `Bearer ${useAuthStore().token}`
       }
     })
-    console.log(res);
-    
     res.notifications.map((noti)=>{
       if(noti.read_at === null) unreadCount.value++
     })

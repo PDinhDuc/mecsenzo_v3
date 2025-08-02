@@ -32,7 +32,7 @@
           :to="localePath(`/conversation/${conversation.id}`)"
           :class="`h-[54px] mb-3 flex items-center cursor-pointer hover:bg-slate-200 hover:bg-[rgba(255,255,255,0.1)]
                   ${getClassBgCurrentConversation(conversation.id)}`"
-          @click="handleSeenConversation(conversation)"
+          @click="handleSeenConversation(conversation.id)"
         > 
           <div class="relative">
             <Avatar
@@ -106,7 +106,6 @@
         :to="localePath(`/conversation/${conversation.id}`)"
         :class="`h-[54px] mb-3 flex items-center cursor-pointer hover:bg-slate-200 hover:bg-[rgba(255,255,255,0.1)]
         ${getClassBgCurrentConversation(conversation.id)}`"
-        @click="handleSeenConversation(conversation)"
       >
         <Avatar
           :is-have-avatar="!!conversation.thumb"
@@ -161,7 +160,7 @@ import Separation from './Separation.vue'
 import { useI18n } from 'vue-i18n'
 import { useLocalePath } from '#i18n'
 import { useAuthStore } from '@/stores/auth'
-import { useChatStore } from '@/stores/chat'
+import { useConversationStore } from '~/stores/conversation'
 
 const AsyncResultSearchConversation = defineAsyncComponent({
   loader: () => import('~/components/ResultSearchConversation.vue'),
@@ -177,7 +176,7 @@ const localePath = useLocalePath()
 // State management using useState (or Pinia)
 const currentEmail = computed(() => useAuthStore.user.email )
 const currentConversation = computed(()=>{
-  const currentConversation = useChatStore.conversation
+  const currentConversation = useConversationStore.conversation
   return currentConversation ? currentConversation?.pivot?.conversation_id : null
 })
 
@@ -218,7 +217,7 @@ const getClassBgCurrentConversation = (idConversation) => {
 // Methods
 
 const handleSeenConversation = async (conversation)=>{
-  await useChatStore().fetchMessages(conversation.id)
+  await useConversationStore().getConversationInfor(conversation)
 }
 
 const showModalAddSpace = () => {
@@ -229,10 +228,10 @@ const showModalAddSpace = () => {
 }
 
 const setConversationIndividualAndSpace = async () => {
-  await useChatStore().fetchConversationsIndividual()
-  await useChatStore().fetchConversationsSpace()
-  conversationIndividual.value = useChatStore().conversationsIndividual
-  conversationSpace.value = useChatStore().conversationsSpace
+  await useConversationStore().fetchConversationsIndividual()
+  await useConversationStore().fetchConversationsSpace()
+  conversationIndividual.value = useConversationStore().conversationsIndividual
+  conversationSpace.value = useConversationStore().conversationsSpace
   isShowLoaderIndividualConversation.value = false
   isShowLoaderGroupConversation.value = false
 }
@@ -251,11 +250,11 @@ const handleChangeSearchKey = (e) => {
 }
 
 const handleLoadMoreSpaces = ()=>{
-  useChatStore().fetchConversations()
+  useConversationStore().fetchConversations()
 }
 
 const handleLoadMoreIndividual = ()=>{
-  useChatStore().fetchConversations()
+  useConversationStore().fetchConversations()
 }
 
 onMounted(async () => {

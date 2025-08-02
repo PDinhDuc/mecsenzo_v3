@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col items-center w-full h-[400px]">
+  <div class="flex flex-col items-center h-[90%] w-full">
     <div class="flex mb-2 w-full animate-pulse">
       <div class="ml-2 w-[100px] h-[30px] bg-slate-200 rounded-[10px]"></div>
     </div>

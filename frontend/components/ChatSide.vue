@@ -8,8 +8,8 @@
       <LoaderUser />
     </div>
     <HeaderChatSide
-      v-if="conversationRealtime"
-      :info-conversation="headerChatSideData"
+      v-else
+      :info-conversation="conversationInfo"
       :is-show-sidebar-conversation="showSidebarConversation"
       @header-chat-side:show-add-member="handleShowModalAddMember"
       @header-chat-side:show-modal-conversation="showModalConversation"
@@ -17,7 +17,9 @@
       @header-chat-side:create-video-call="handleCreateVideoCall"
     />
     <Separation />
+    <LoaderMessage v-if="isShowLoader"/>
     <ListMessage
+    v-else
       :list-message="messages"
       @list-msg:load-more-message="handleLoadMoreMessage"
       @list-msg:set-reply="handleSetReplyMessage"
@@ -100,9 +102,10 @@ import ModalCallVideo from '~/components/ModalCallVideo.vue'
 import LoaderUser from '~/components/LoaderUser.vue'
 import PreviewVoiceChat from '~/components/PreviewVoiceChat.vue'
 import ChatSideFooter from '~/components/ChatSideFooter.vue'
+import LoaderMessage from './LoaderMessage.vue'
 import { useI18n } from 'vue-i18n'
 import { useLocalePath } from '#i18n'
-import { useChatStore } from '@/stores/chat'
+import { useConversationStore } from '~/stores/conversation'
 import useChat from '@/composables/useChat'
 
 const { t } = useI18n()
@@ -119,7 +122,9 @@ const {
   listen,
   stop,
   loadMessages,
-  hasMore
+  sendMessage,
+  hasMore,
+  isShowLoader,
 } = useChat(conversationId.value)
 
 // Reactive state
@@ -145,10 +150,7 @@ const isShowModalCallVideo = ref(false)
 const infoVideoCall = ref(null)
 const unsubscribeCurrentMessageVideoCall = ref(null)
 const flagAutoCancelVideoCall = ref(true)
-
-// Computed properties
-// const showSidebarConversation = computed(() => useSidebarConversationStore().getIsShow)
-// const currentEmail = computed(() => useAccountStore().getAccount)
+const showSidebarConversation = ref(false)
 
 const partnerUser = computed(() => {
   return messages.value.filter(mess => mess.user_id !== useAuthStore().user.id)
@@ -159,20 +161,7 @@ const currentUser = computed(() => {
 })
 
 const conversationInfo = computed(() => {
-  
-  
-  if (conversationRealtime.value) {
-    if (conversationRealtime.value.type === 'group') {
-      return {
-        name: conversationRealtime.value.name,
-        avatar: conversationRealtime.value.thumb,
-      }
-    }
-    return partnerUser.value
-      ? { name: partnerUser.value.fullName, avatar: partnerUser.value.avatar }
-      : { name: '', avatar: null }
-  }
-  return { name: '', avatar: null }
+  return useConversationStore().conversationInfor
 })
 
 const statusPartner = computed(() => partnerUser.value?.isActive || false)
@@ -217,8 +206,6 @@ const headerChatSideData = computed(() => ({
   conversation: conversationRealtime.value,
   statusPartner: statusPartner.value,
 }))
-
-const isShowLoader = computed(() => !conversationRealtime.value)
 
 const titlePage = computed(() => {
   if (conversationRealtime.value) {
@@ -288,17 +275,17 @@ const updateConversationWhenSendMessage = async (newMessage) => {
   })
 }
 
-const sendMessage = async (content, type) => {
-  const userSendMessage = currentUser.value
-  const newMessage = await saveMessage(
-    conversationRealtime.value.id,
-    userSendMessage,
-    content,
-    replyMessage.value,
-    type
-  )
-  await updateConversationWhenSendMessage(newMessage)
-}
+// const sendMessage = async (content, type) => {
+//   const userSendMessage = currentUser.value
+//   const newMessage = await saveMessage(
+//     conversationRealtime.value.id,
+//     userSendMessage,
+//     content,
+//     replyMessage.value,
+//     type
+//   )
+//   await updateConversationWhenSendMessage(newMessage)
+// }
 
 const saveMessageImage = async (url) => {
   await sendMessage(url, 'image')
@@ -323,7 +310,7 @@ const handleSendMessage = async () => {
   } else if (dataChatVoice.value) {
     console.log('chatvoice');  
   } else if (inputMessage.value) {
-    await useChatStore().sendMessage(conversationId.value, inputMessage.value)
+    await sendMessage(inputMessage.value)
     inputMessage.value = ''
     replyMessage.value = null
   }
@@ -513,11 +500,8 @@ const setCurrentMessageVideoCall = (message) => {
   currentMessageVideoCall.value = message
 }
 
-// Lifecycle hooks
-onMounted(async () => {
-  
-  await useChatStore().fetchMessages(conversationId.value)
-  // console.log(listMessageData.value);
+onMounted(async ()=>{
+  await useConversationStore().getConversationInfor(conversationId.value)
 })
 
 onUnmounted(() => {

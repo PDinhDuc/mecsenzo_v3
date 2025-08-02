@@ -7,10 +7,6 @@
     @scroll="onScrollContainerMessage"
   >
     <div class="h-[90%] flex flex-col-reverse justify-end">
-      <div v-if="!listMessage">
-        <LoaderMessage />
-      </div>
-      <ListMessageFooter :footer-list-message-data="footerData"/>
       <div
         v-for="(message, index) in listMessage"
         :key="index"
@@ -29,8 +25,6 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import LoaderMessage from '~/components/LoaderMessage.vue'
-import ListMessageFooter from '~/components/ListMessageFooter.vue'
 import Message from '~/components/Message.vue'
 
 // Props

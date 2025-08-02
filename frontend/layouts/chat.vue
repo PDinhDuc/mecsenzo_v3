@@ -27,7 +27,7 @@
 
 <script setup>
   import {ref} from 'vue'
-  import { useChatStore} from '@/stores/chat'
+  import { useConversationStore} from '~/stores/conversation'
 
   const isShow = ref(false)
   const percentUploadAvatar = ref(null);
@@ -37,7 +37,7 @@
   }
 
   const openModalAddConversation = function() {
-    useChatStore.conversation = null
+    useConversationStore.conversation = null
     isShow.value = true
   }
 

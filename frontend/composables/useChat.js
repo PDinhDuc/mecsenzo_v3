@@ -9,6 +9,7 @@ export default function useChat(conversationId) {
   const error = ref(null)
   const currentPage = ref(1)
   const hasMore = ref(true)
+  const isShowLoader = ref(true)
 
   let channel = null
 
@@ -50,8 +51,29 @@ export default function useChat(conversationId) {
       }
     })
     if (res.data.length < 10) hasMore.value = false
+    isShowLoader.value = false
     messages.value = [...messages.value,...res.data]
     currentPage.value++
+  }
+
+  const sendMessage = async (content) => {
+    try {
+      const url = `/api/conversations/${conversationId}/send`
+      await $fetch(url, {
+        method: 'POST',
+        baseURL: useRuntimeConfig().public.apiBase,
+        headers: {
+          Authorization: `Bearer ${useAuthStore().token}`,
+        },
+        body: {
+          "conversation_id": conversationId,
+          content,
+        },
+      })
+    } catch (err) {
+      console.error('Gửi tin nhắn thất bại:', err)
+      throw err
+    }
   }
 
   onMounted(async () => {
@@ -67,7 +89,10 @@ export default function useChat(conversationId) {
     messages,
     isListening,
     error,
+    loadMessages,
+    sendMessage,
     listen,
     stop,
+    isShowLoader
   }
 }

@@ -4,14 +4,15 @@
       <div class="flex items-center">
         <div class="relative z-[10]">
           <Avatar
-            :is-have-avatar="!!infoConversation.avatar"
-            :src-image="infoConversation.avatar"
-            :first-char="infoConversation.name && infoConversation.name.charAt(0)"
+            v-if="conversationInfor"
+            :is-have-avatar="!!conversationInfor?.avatar"
+            :src-image="conversationInfor?.avatar"
+            :first-char="conversationInfor?.name && conversationInfor?.name.charAt(0)"
           />
           <div
-            v-if="infoConversation.conversation.type === 'individual'"
+            v-if="infoConversation.type === 'private'"
             :class="`absolute w-[12px] h-[12px] rounded-full bottom-0 right-0
-              ${infoConversation.statusPartner ? 'bg-success' : 'bg-gray-300'}`"
+              ${conversationInfor.statusPartner ? 'bg-success' : 'bg-gray-300'}`"
           ></div>
         </div>
         <div class="conversation-content ml-4">
@@ -19,19 +20,19 @@
             :class="`select-none font-semibold truncate max-w-[80px] sm:max-w-[300px] dark:text-white
               ${isShowSidebarConversation ? 'hidden' : ''}`"
           >
-            {{ infoConversation.name }}
+            {{ conversationInfor?.name }}
           </p>
           <p
-            v-if="infoConversation.conversation.type === 'individual'"
+            v-if="infoConversation.type === 'private'"
             class="select-none truncate text-[0.9rem] max-w-[180px] h-[1.4rem] text-gray-500"
           >
-            {{ infoConversation.statusPartner ? $t('chatSide.active') : $t('chatSide.offline') }}
+            {{ conversationInfor.statusPartner ? t('chatSide.active') : t('chatSide.offline') }}
           </p>
         </div>
       </div>
       <div class="flex items-center">
         <ButtonIcon
-          v-if="infoConversation.conversation.type === 'group'"
+          v-if="infoConversation.type === 'group'"
           :color="getColorBtnIcon"
           @btn-icon-click="handleShowModalAddMember"
         >
@@ -50,7 +51,7 @@
           <font-awesome-icon icon="circle-info" />
         </ButtonIcon>
         <ButtonIcon
-          v-if="infoConversation.conversation.type === 'group'"
+          v-if="infoConversation.type === 'group'"
           :color="getColorBtnIcon"
           @btn-icon-click="handleShowPopupLeaveRoom"
         >
@@ -63,18 +64,18 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useNuxtApp } from '#app'
 import ButtonIcon from '~/components/ButtonIcon.vue'
 import Avatar from '~/components/Avatar.vue'
+import { useAuthStore } from '@/stores/auth'
+import { useI18n } from 'vue-i18n'
 
-// Nuxt app context for i18n
-const { $t } = useNuxtApp()
+const { t } = useI18n()
 
 // Props
 const props = defineProps({
   infoConversation: {
     type: Object,
-    default: () => null,
+    required: true,
   },
   isShowSidebarConversation: {
     type: Boolean,
@@ -91,7 +92,16 @@ const emit = defineEmits([
 ])
 
 // Computed properties
-const getColorBtnIcon = computed(() => props.infoConversation.conversation.colorChat)
+const getColorBtnIcon = computed(() => props.infoConversation.colorChat)
+const conversationInfor = computed(() => {
+  const info = props.infoConversation
+  if (!info || !info.users) return null
+
+  if (info.type === 'private') {
+    return info.users.find((user) => user.id !== useAuthStore().user.id) || null
+  }
+  return info
+})
 
 // Methods
 const handleShowModalAddMember = () => {

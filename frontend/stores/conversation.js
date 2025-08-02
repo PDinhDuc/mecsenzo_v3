@@ -1,9 +1,10 @@
 import { defineStore } from 'pinia'
 
-export const useChatStore = defineStore('chat', {
+export const useConversationStore = defineStore('chat', {
   state: () => ({
     conversationsIndividual: [],
     conversationsSpace: [],
+    conversationInfor: {},
     messages: {},
     pageOfIndividual: 1,
     pageOfSpace: 1
@@ -42,33 +43,18 @@ export const useChatStore = defineStore('chat', {
       }
     },
 
-    async fetchMessages(conversationId) {
-      const res = await $fetch(`${useRuntimeConfig().public.apiBase}/api/conversations/${conversationId}/messages`, {
-        headers: {
-          Authorization: `Bearer ${useAuthStore().token}`,
-        },
-      })
-      this.messages[conversationId] = res
-    },
-
-    async sendMessage(conversationId, content) {
-      try {
-        const url = `/api/conversations/${conversationId}/send`
-        await $fetch(url, {
-          method: 'POST',
-          baseURL: useRuntimeConfig().public.apiBase,
+    async getConversationInfor(conversationId){
+      const url = `${useRuntimeConfig().public.apiBase}/api/conversations/${conversationId}`
+      try{
+        const res = await $fetch(url,{
           headers: {
-            Authorization: `Bearer ${useAuthStore().token}`,
-          },
-          body: {
-            "conversation_id": conversationId,
-            content,
-          },
+            Authorization: `Bearer ${useAuthStore().token}`
+          }
         })
-      } catch (err) {
-        console.error('Gửi tin nhắn thất bại:', err)
-        throw err
+        this.conversationInfor = res
+      }catch(err){
+        console.log(err);
       }
-    },
+    }
   },
 })
