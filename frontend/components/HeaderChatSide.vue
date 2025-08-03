@@ -12,7 +12,7 @@
           <div
             v-if="infoConversation.type === 'private'"
             :class="`absolute w-[12px] h-[12px] rounded-full bottom-0 right-0
-              ${conversationInfor.statusPartner ? 'bg-success' : 'bg-gray-300'}`"
+              ${conversationInfor.is_online ? 'bg-success' : 'bg-gray-300'}`"
           ></div>
         </div>
         <div class="conversation-content ml-4">
@@ -26,7 +26,7 @@
             v-if="infoConversation.type === 'private'"
             class="select-none truncate text-[0.9rem] max-w-[180px] h-[1.4rem] text-gray-500"
           >
-            {{ conversationInfor.statusPartner ? t('chatSide.active') : t('chatSide.offline') }}
+            {{ conversationInfor.is_online ? t('chatSide.active') : t('chatSide.offline') }}
           </p>
         </div>
       </div>
@@ -68,10 +68,19 @@ import ButtonIcon from '~/components/ButtonIcon.vue'
 import Avatar from '~/components/Avatar.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useI18n } from 'vue-i18n'
+import realtimeUserActive from '@/composables/realtimeUserActive'
 
+const updateUserStatus = (userId, isOnline) => {
+  if (props.infoConversation.type !== 'private') return
+
+  const user = conversationInfor.value
+  if (user && user.id === userId) {
+    user.is_online = isOnline
+  }
+}
+const {listen , leave} = realtimeUserActive(updateUserStatus)
 const { t } = useI18n()
 
-// Props
 const props = defineProps({
   infoConversation: {
     type: Object,
@@ -83,7 +92,6 @@ const props = defineProps({
   },
 })
 
-// Emits
 const emit = defineEmits([
   'header-chat-side:show-add-member',
   'header-chat-side:show-modal-conversation',
@@ -91,19 +99,10 @@ const emit = defineEmits([
   'header-chat-side:create-video-call',
 ])
 
-// Computed properties
+
 const getColorBtnIcon = computed(() => props.infoConversation.colorChat)
-const conversationInfor = computed(() => {
-  const info = props.infoConversation
-  if (!info || !info.users) return null
+const conversationInfor = ref(null)
 
-  if (info.type === 'private') {
-    return info.users.find((user) => user.id !== useAuthStore().user.id) || null
-  }
-  return info
-})
-
-// Methods
 const handleShowModalAddMember = () => {
   emit('header-chat-side:show-add-member')
 }
@@ -119,6 +118,30 @@ const handleShowPopupLeaveRoom = () => {
 const handleCreateVideoCall = () => {
   emit('header-chat-side:create-video-call')
 }
+
+watch(
+  () => props.infoConversation,
+  (newInfo) => {
+    if (!newInfo || !newInfo.users) {
+      conversationInfor.value = null
+      return
+    }
+
+    if (newInfo.type === 'private') {
+      conversationInfor.value =
+        newInfo.users.find((user) => user.id !== useAuthStore().user.id) || null
+    } else {
+      conversationInfor.value = newInfo
+    }
+  },
+  { immediate: true, deep: true }
+)
+onMounted(()=>{
+  listen()
+})
+onBeforeUnmount(()=>{
+  leave()
+})
 </script>
 
 <style></style>

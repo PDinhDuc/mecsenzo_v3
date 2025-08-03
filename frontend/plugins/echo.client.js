@@ -2,7 +2,10 @@
 import Echo from 'laravel-echo'
 import Pusher from 'pusher-js'
 
-export default defineNuxtPlugin((nuxtApp) => {
+export default defineNuxtPlugin(async(nuxtApp) => {
+  await $fetch('http://localhost:8000/sanctum/csrf-cookie', {
+  credentials: 'include'
+})
   const config = useRuntimeConfig()
   const authStore = useAuthStore()
   
@@ -24,7 +27,8 @@ export default defineNuxtPlugin((nuxtApp) => {
       headers: {
         Authorization: `Bearer ${authStore.token}`
       }
-    }
+    },
+    withCredentials: true,
   })
 
   nuxtApp.provide('echo', echo)

@@ -66,6 +66,20 @@ class ConversationController extends Controller
         return response()->json($conversation);
     }
 
+    public function getInforConversation($conversationId){
+        $conversation = Conversation::with('users')->find($conversationId);
+        if(!$conversation){
+            return response()->json([
+                'message' => 'Conversatin not found'
+            ], 404);
+        }
+        $conversation->users->transform(function ($user) {
+            $user->is_online = cache()->has('user-is-online-' . $user->id);
+            return $user;
+        });
+        return response()->json($conversation,200);
+    }
+
     public function loadMessages(Request $request, $conversationId)
     {
         $messages = Messages::with('user')

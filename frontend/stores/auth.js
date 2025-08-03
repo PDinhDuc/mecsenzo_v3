@@ -84,8 +84,6 @@ export const useAuthStore = defineStore('auth', {
             },
           })
           if (error.value) {
-            console.log('error');
-            
             this.logout()
             return false
           } else {
@@ -100,7 +98,13 @@ export const useAuthStore = defineStore('auth', {
       return false
     },
 
-    logout() {
+    async logout() {
+      const url = `${useRuntimeConfig().public.apiBase}/api/auth/logout`
+      await $fetch(url,{
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+        },
+      })
       this.user = null
       this.token = ''
     }

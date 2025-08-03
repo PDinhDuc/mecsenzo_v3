@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Friendships;
 use App\Models\Conversation;
@@ -65,4 +66,9 @@ class User extends Authenticatable
     public function message(): HasMany{
         return $this->hasMany(Messages::class);
     }
+
+    public function getIsOnlineAttribute()
+{
+    return Cache::has('user-is-online-' . $this->id);
+}
 }

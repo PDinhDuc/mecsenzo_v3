@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
+Broadcast::routes(['middleware' => ['auth:sanctum']]);
+
 Broadcast::channel('conversation.{conversationId}', function ($user, $conversationId) {
     return true; // hoặc xác thực quyền user với cuộc trò chuyện
 });
@@ -23,4 +25,8 @@ Broadcast::channel('friend-request.{receiverId}', function ($user, $receiverId) 
 
 Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
+});
+
+Broadcast::channel('conversation-user-status', function ($user) {
+    return true;
 });

@@ -8,6 +8,7 @@ use App\Http\Controllers\FriendRequestController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\AuthController;
+use Illuminate\Support\Facades\Broadcast;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -19,11 +20,14 @@ use App\Http\Controllers\AuthController;
 |
 */
 //route auth
+
+Broadcast::routes(['middleware' => ['auth:sanctum']]);
+
 Route::group(['prefix' => 'auth'],function (){
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register',[AuthController::class, 'register']);
     Route::middleware('auth:sanctum')->group(function (){
-        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/logout', [AuthController::class, 'logout']);
         Route::get('/user', [AuthController::class, 'getUser']);
     });
 });
@@ -49,6 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 //route conversation / messages
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/conversations/{id}', [ConversationController::class, 'getInforConversation']);
     Route::get('/conversations-individual', [ConversationController::class, 'getConversationIndividual']);
     Route::get('/conversations-space', [ConversationController::class, 'getConversationSpace']);
     Route::get('/conversations/with/{userId}', [ConversationController::class, 'getConversationWithUser']);
