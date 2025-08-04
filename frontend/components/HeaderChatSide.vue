@@ -70,11 +70,13 @@ import { useAuthStore } from '@/stores/auth'
 import { useI18n } from 'vue-i18n'
 import realtimeUserActive from '@/composables/realtimeUserActive'
 
-const updateUserStatus = (userId, isOnline) => {
+const updateUserStatus = (id, name, isOnline) => {
+  console.log(id, isOnline);
+  
   if (props.infoConversation.type !== 'private') return
 
   const user = conversationInfor.value
-  if (user && user.id === userId) {
+  if (user && user.id === id) {
     user.is_online = isOnline
   }
 }

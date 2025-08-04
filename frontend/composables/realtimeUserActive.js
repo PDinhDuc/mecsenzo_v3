@@ -6,13 +6,13 @@ export default function realtimeUserActive(updateUserStatus) {
       .listen('UserOnlineStatusUpdated', (event) => {
         console.log(event);
         
-        const { user_id, is_online } = event
-        updateUserStatus(user_id, is_online)
+        const { id, name, is_online } = event
+        updateUserStatus(id, name, is_online)
       })
   }
 
   const leave = () => {
-    $echo.leave('UserOnlineStatusUpdated')
+    $echo.leave('conversation-user-status')
   }
 
   return {

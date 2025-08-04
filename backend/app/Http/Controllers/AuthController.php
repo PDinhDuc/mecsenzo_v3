@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Events\UserOnlineStatusUpdated;
+use Illuminate\Support\Facades\Cache;
 
 class AuthController extends Controller
 {
@@ -16,6 +17,8 @@ class AuthController extends Controller
         if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
+        $user->update(['is_online' => true]);
+        broadcast(new UserOnlineStatusUpdated($user->fresh()));
         return response()->json([
             'token' => $user->createToken('api-token')->plainTextToken,
         ]);
@@ -47,8 +50,9 @@ class AuthController extends Controller
 
     public function logout(Request $request){
         $user = Auth::user();
-        broadcast(new UserOnlineStatusUpdated($user, false));
         Cache::forget('user-is-online-' . $user->id);
+        $user->update(['is_online' => false]);
+        broadcast(new UserOnlineStatusUpdated($user));
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Logged out']);
     }

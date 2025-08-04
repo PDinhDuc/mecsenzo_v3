@@ -28,11 +28,16 @@ class DetectUserOffline implements ShouldQueue
      */
     public function handle(): void
     {
-        User::all()->each(function ($user) {
-            $isOnline = Cache::has('user-is-online-' . $user->id);
-            if (!$isOnline) {
-                broadcast(new UserOnlineStatusUpdated($user, false));
-            }
+        User::where('is_online', true)
+            ->chunk(500, function ($users) {
+                foreach ($users as $user) {
+                    $online = Cache::get('user-is-online-' . $user->id, false);
+
+                    if ((bool)$user->is_online !== $online) {
+                        $user->update(['is_online' => $online]);
+                        broadcast(new UserOnlineStatusUpdated($user));
+                    }
+                }
         });
     }
 }

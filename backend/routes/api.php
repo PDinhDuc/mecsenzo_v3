@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Broadcast;
 Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
 Route::group(['prefix' => 'auth'],function (){
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->name('login');
     Route::post('/register',[AuthController::class, 'register']);
     Route::middleware('auth:sanctum')->group(function (){
         Route::get('/logout', [AuthController::class, 'logout']);

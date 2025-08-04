@@ -18,13 +18,15 @@ class LastUserActive
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check() && !in_array($request->route()->getName(), ['logout'])) {
+        if (Auth::check()) {
             $user = Auth::user();
-            $wasOnline = Cache::has('user-is-online-' . $user->id);
-            $expiresAt = now()->addMinutes(3);
-            Cache::put('user-is-online-' . Auth::id(), true, $expiresAt);
-            if(!$wasOnline){
-                broadcast(new UserOnlineStatusUpdated($user, true));
+            Cache::put('user-is-online-' . $user->id, true, now()->addMinutes(5));
+            if (is_null($user->last_active_at) || now()->diffInMinutes($user->last_active_at) >= 5) {
+                $user->forceFill(['last_active_at' => now()])->save();
+            }
+            if(!$user->is_online){
+                $user->update(['is_online' => true]);
+                broadcast(new UserOnlineStatusUpdated($user->fresh()));
             }
         }
         return $next($request);

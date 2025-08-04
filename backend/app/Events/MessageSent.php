@@ -28,6 +28,7 @@ class MessageSent implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
+                 \Log::info('Broadcast on MessageSent chạy');
         return [
             new PrivateChannel('conversation.' .$this->message->conversation_id),
         ];

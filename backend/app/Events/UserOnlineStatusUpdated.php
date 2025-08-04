@@ -19,12 +19,11 @@ class UserOnlineStatusUpdated implements ShouldBroadcast
      * Create a new event instance.
      */
     public $user;
-    public $isOnline;
 
-    public function __construct(User $user, bool $isOnline)
+    public function __construct(User $user)
     {
-        $this->user = $user;
-        $this->isOnline = $isOnline;
+         \Log::info('Broadcast constructor chạy');
+        $this->user = $user->fresh()->only(['id', 'name', 'is_online']);
     }
 
     /**
@@ -34,6 +33,7 @@ class UserOnlineStatusUpdated implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
+         \Log::info('Broadcast on chạy');
         return [
             new PrivateChannel('conversation-user-status'),
         ];
@@ -41,9 +41,6 @@ class UserOnlineStatusUpdated implements ShouldBroadcast
 
     public function broadcastWith()
     {
-        return [
-            'user_id' => $this->user->id,
-            'is_online' => $this->isOnline,
-        ];
+        return $this->user;
     }
 }

@@ -28,5 +28,6 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 });
 
 Broadcast::channel('conversation-user-status', function ($user) {
+    \Log::info('Có user đang auth vào kênh:', ['id' => $user->id]);
     return true;
 });
