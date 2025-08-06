@@ -31,13 +31,15 @@ class DetectUserOffline implements ShouldQueue
         User::where('is_online', true)
             ->chunk(500, function ($users) {
                 foreach ($users as $user) {
-                    $online = Cache::get('user-is-online-' . $user->id, false);
+                    $stillOnline = Cache::has('user-is-online-' . $user->id);
 
-                    if ((bool)$user->is_online !== $online) {
-                        $user->update(['is_online' => $online]);
+                    if (! $stillOnline) {
+                        $user->update(['is_online' => false]);
                         broadcast(new UserOnlineStatusUpdated($user));
+                        $user->currentAccessToken()->delete();
                     }
                 }
-        });
+            });
     }
+
 }

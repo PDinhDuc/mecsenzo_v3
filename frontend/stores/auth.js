@@ -73,6 +73,7 @@ export const useAuthStore = defineStore('auth', {
 
     async restoreSession() {
       const tokentmp = localStorage.getItem('auth_token')
+      if(!tokentmp) return
       if (tokentmp) {
         this.token = tokentmp
         try {
@@ -107,6 +108,10 @@ export const useAuthStore = defineStore('auth', {
       })
       this.user = null
       this.token = ''
+      if (window.__NUXT_ECHO__) {
+        window.__NUXT_ECHO__.disconnect()
+        delete window.__NUXT_ECHO__
+      }
     }
   }
 })

@@ -68,9 +68,4 @@ class User extends Authenticatable
     public function message(): HasMany{
         return $this->hasMany(Messages::class);
     }
-
-    public function getIsOnlineAttribute()
-{
-    return Cache::has('user-is-online-' . $this->id);
-}
 }

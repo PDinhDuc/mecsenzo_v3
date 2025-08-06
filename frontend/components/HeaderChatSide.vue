@@ -71,8 +71,6 @@ import { useI18n } from 'vue-i18n'
 import realtimeUserActive from '@/composables/realtimeUserActive'
 
 const updateUserStatus = (id, name, isOnline) => {
-  console.log(id, isOnline);
-  
   if (props.infoConversation.type !== 'private') return
 
   const user = conversationInfor.value

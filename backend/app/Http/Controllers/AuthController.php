@@ -18,7 +18,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
         $user->update(['is_online' => true]);
-        broadcast(new UserOnlineStatusUpdated($user->fresh()));
+        broadcast(new UserOnlineStatusUpdated($user));
         return response()->json([
             'token' => $user->createToken('api-token')->plainTextToken,
         ]);
@@ -50,7 +50,6 @@ class AuthController extends Controller
 
     public function logout(Request $request){
         $user = Auth::user();
-        Cache::forget('user-is-online-' . $user->id);
         $user->update(['is_online' => false]);
         broadcast(new UserOnlineStatusUpdated($user));
         $request->user()->currentAccessToken()->delete();

@@ -2,7 +2,8 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "dev": "concurrently \"php artisan serve\" \"php artisan websocket:serve\" \"php artisan queue:work\"",
+        "dev": "concurrently \"php artisan serve\" \"php artisan websocket:serve\"",
+        "job": "concurrently \"php artisan queue:work\" \"php artisan schedule:work\"",
         "build": "vite build"
     },
     "devDependencies": {
