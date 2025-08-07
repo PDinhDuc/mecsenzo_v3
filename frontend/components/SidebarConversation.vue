@@ -42,7 +42,7 @@
             />
             <div
               :class="`absolute w-[12px] h-[12px] rounded-full bottom-0 right-0 
-              ${getClassIsOnline(conversation.partnerUser)}`"
+              ${getClassIsOnline(conversation.partner)}`"
             ></div>
           </div>
           <div class="conversation-content ml-4">
@@ -161,6 +161,7 @@ import { useI18n } from 'vue-i18n'
 import { useLocalePath } from '#i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useConversationStore } from '~/stores/conversation'
+import realtimeUserActive from '@/composables/realtimeUserActive'
 
 const AsyncResultSearchConversation = defineAsyncComponent({
   loader: () => import('~/components/ResultSearchConversation.vue'),
@@ -187,6 +188,17 @@ const conversationIndividual = ref([])
 const isShowLoaderIndividualConversation = ref(true)
 const isShowLoaderGroupConversation = ref(true)
 
+const updateUserStatus = (id, name, isOnline) => {
+  const tmp = [...conversationIndividual.value]
+  tmp.forEach((conv,index)=>{
+    if(conv.partner.id === id)
+    conversationIndividual.value[index].partner.is_online = isOnline
+  })
+  console.log(conversationIndividual.value);
+  
+}
+const {listen , leave} = realtimeUserActive(updateUserStatus)
+
 // Computed properties
 const getLastMessage = (conversation) => {
   return 'text'
@@ -203,7 +215,7 @@ const getClassNewMsgNotSeen = (conversation) => {
 }
 
 const getClassIsOnline = (partnerUser) => {
-  return partnerUser?.isActive ? 'bg-success' : 'bg-gray-300'
+  return partnerUser?.is_online ? 'bg-success' : 'bg-gray-300'
 }
 
 const getCurrentConversationId = () => {
@@ -259,7 +271,11 @@ const handleLoadMoreIndividual = ()=>{
 
 onMounted(async () => {
   await setConversationIndividualAndSpace()
+  listen()
+})
 
+onBeforeUnmount(()=>{
+  leave()
 })
 </script>
 

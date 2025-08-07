@@ -19,6 +19,8 @@ export const useConversationStore = defineStore('chat', {
         },
         })
         this.conversationsIndividual = [...this.conversationsIndividual, ...res]
+        console.log(this.conversationsIndividual);
+        
         this.pageOfIndividual += 1
       }catch(err){
         this.conversationsIndividual = []

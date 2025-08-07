@@ -12,8 +12,8 @@ class ConversationController extends Controller
     public function getConversationIndividual(){
         $user = Auth::user();
         $conversations = $user->conversations()->where('type','private')
-            ->with(['users:id,name,avatar', 'messages' => function ($q) {
-                $q->latest(); // lấy tin nhắn cuối cùng
+            ->with(['users:id,name,avatar,is_online', 'messages' => function ($q) {
+                $q->latest();
             }])->paginate(2);
         $mapped = $conversations->map(function ($conversation) use ($user) {
             $partner = $conversation->users->where('id', '!=', $user->id)->values();
