@@ -23,6 +23,7 @@ export default defineNuxtConfig({
 
   i18n: {
     langDir: 'locales',
+    lazy: true,
     defaultLocale: 'en',
     locales: [
       { code: 'en', file: 'en.js', name: 'English' },
@@ -31,6 +32,20 @@ export default defineNuxtConfig({
   },
 
   compatibilityDate: '2025-07-15',
-  devtools: { enabled: true },
+  devtools: { enabled: process.env.NODE_ENV !== 'production' },
   ssr: false,
+
+  // Performance-focused tweaks
+  nitro: {
+    compressPublicAssets: true,
+  },
+
+  vite: {
+    build: {
+      cssCodeSplit: true,
+    },
+    esbuild: {
+      drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
+    },
+  },
 })
