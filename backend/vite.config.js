@@ -8,4 +8,19 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    build: {
+        cssCodeSplit: true,
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    vendor: ['axios']
+                }
+            }
+        },
+        // Use esbuild minifier and drop console/debugger in production
+        minify: 'esbuild'
+    },
+    esbuild: {
+        drop: ['console', 'debugger']
+    }
 });
